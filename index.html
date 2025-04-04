@@ -115,6 +115,14 @@
             background: #fff;
             border-radius: 8px;
         }
+
+        select {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -135,8 +143,17 @@
         <div id="folderSection">
             <h2>Upload Folder</h2>
             <input type="file" id="folderUpload" multiple webkitdirectory />
-            <input type="text" id="folderDiagnosis" placeholder="Diagnosis" />
-            <input type="text" id="folderSplit" placeholder="Split" />
+            <select id="folderDiagnosis">
+                <option value="" disabled selected>Select Diagnosis</option>
+                <option value="glaucoma">Glaucoma</option>
+                <option value="normal">Normal</option>
+            </select>
+            <select id="folderSplit">
+                <option value="" disabled selected>Select Split</option>
+                <option value="train">Train</option>
+                <option value="validation">Validation</option>
+                <option value="test">Test</option>
+            </select>
             <button id="uploadFolderBtn" class="btn">Upload Folder</button>
             <div id="folderUploadResult" class="status"></div>
             <div id="folderPreview"></div>
@@ -172,9 +189,7 @@
             const response = await fetch(endpoint, {
                 method: method,
                 body: body,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
             });
             return await response.json();
         }
@@ -183,7 +198,7 @@
             const fileInput = document.getElementById('imageUpload');
             const resultElement = document.getElementById('uploadResult');
             const previewElement = document.getElementById('preview');
-            
+
             if (!fileInput.files.length) {
                 resultElement.className = 'status error';
                 resultElement.innerHTML = '<p>Please select an image first</p>';
@@ -247,6 +262,8 @@
 
         document.getElementById('statsBtn').addEventListener('click', async () => {
             const resultElement = document.getElementById('statsResult');
+            const statsContainer = document.getElementById('datasetStats');
+            statsContainer.innerHTML = '';
             resultElement.className = 'status info';
             resultElement.innerHTML = '<p>Loading dataset stats...</p>';
 
@@ -258,18 +275,12 @@
                 const statsTable = document.createElement('table');
                 statsTable.innerHTML = `
                     <thead>
-                        <tr>
-                            <th>Dataset Split</th>
-                            <th>Count</th>
-                        </tr>
+                        <tr><th>Dataset Split</th><th>Count</th></tr>
                     </thead>
                     <tbody>
-                        ${Object.keys(data).map(split => {
-                            return `<tr><td>${split}</td><td>${data[split]}</td></tr>`;
-                        }).join('')}
-                    </tbody>
-                `;
-                document.getElementById('datasetStats').appendChild(statsTable);
+                        ${Object.keys(data).map(split => `<tr><td>${split}</td><td>${data[split]}</td></tr>`).join('')}
+                    </tbody>`;
+                statsContainer.appendChild(statsTable);
             } catch (error) {
                 resultElement.className = 'status error';
                 resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
@@ -280,7 +291,7 @@
             const fileInput = document.getElementById('predictImage');
             const resultElement = document.getElementById('predictResult');
             const previewElement = document.getElementById('predictPreview');
-            
+
             if (!fileInput.files.length) {
                 resultElement.className = 'status error';
                 resultElement.innerHTML = '<p>Please select an image for prediction</p>';
@@ -307,6 +318,10 @@
 
         document.getElementById('retrainBtn').addEventListener('click', async () => {
             const resultElement = document.getElementById('retrainResult');
+            const chartContainer = document.getElementById('chartContainer');
+            const metricsDiv = document.getElementById('metrics');
+            chartContainer.innerHTML = '';
+            metricsDiv.innerHTML = '';
             resultElement.className = 'status info';
             resultElement.innerHTML = '<p>Retraining model...</p>';
 
@@ -314,34 +329,12 @@
                 const data = await callApi('/retrain/');
                 resultElement.className = 'status success';
                 resultElement.innerHTML = `<p>Model retrained successfully</p>`;
-                document.getElementById('metrics').innerHTML = `
-                    <p>Loss: ${data.loss}</p>
-                    <p>Accuracy: ${data.accuracy}</p>
-                `;
-                const ctx = document.getElementById('chartContainer').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.epochs,
-                        datasets: [{
-                            label: 'Loss',
-                            data: data.losses,
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            fill: false
-                        }, {
-                            label: 'Accuracy',
-                            data: data.accuracies,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            fill: false
-                        }]
-                    }
-                });
+                metricsDiv.innerHTML = `<p>Loss: ${data.loss}</p><p>Accuracy: ${data.accuracy}</p>`;
             } catch (error) {
                 resultElement.className = 'status error';
                 resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
             }
         });
     </script>
-
 </body>
 </html>
