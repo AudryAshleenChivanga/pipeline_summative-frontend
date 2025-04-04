@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glaucoma Detection System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Glaucoma Detection System</h1>
+
+    <!-- API Status Section -->
+    <section class="section">
+        <h2>API Status</h2>
+        <button id="healthCheck">Check API Status</button>
+        <div id="healthResult" class="status"></div>
+    </section>
+
+    <!-- Single Image Upload Section -->
+    <section class="section">
+        <h2>Upload Single Image</h2>
+        <fieldset>
+            <input type="file" id="imageUpload" accept="image/*">
+            <div>
+                <label for="diagnosis">Diagnosis:</label>
+                <select id="diagnosis">
+                    <option value="glaucoma">Glaucoma</option>
+                    <option value="normal">Normal</option>
+                </select>
+            </div>
+            <div>
+                <label for="split">Dataset Split:</label>
+                <select id="split">
+                    <option value="train">Train</option>
+                    <option value="val">Validation</option>
+                    <option value="test">Test</option>
+                </select>
+            </div>
+        </fieldset>
+        <button id="uploadBtn">Upload Image</button>
+        <div id="uploadResult" class="status"></div>
+        <img id="uploadPreview" class="preview" style="display: none;">
+    </section>
+
+    <!-- Image Folder Upload Section -->
+    <section class="section">
+        <h2>Upload Image Folder</h2>
+        <fieldset>
+            <input type="file" id="folderUpload" webkitdirectory directory multiple>
+            <div>
+                <label for="folderDiagnosis">Diagnosis:</label>
+                <select id="folderDiagnosis">
+                    <option value="glaucoma">Glaucoma</option>
+                    <option value="normal">Normal</option>
+                </select>
+            </div>
+            <div>
+                <label for="folderSplit">Dataset Split:</label>
+                <select id="folderSplit">
+                    <option value="train">Train</option>
+                    <option value="val">Validation</option>
+                    <option value="test">Test</option>
+                </select>
+            </div>
+        </fieldset>
+        <button id="uploadFolderBtn">Upload Folder</button>
+        <div id="folderUploadResult" class="status"></div>
+        <div id="folderPreview" class="grid-preview"></div>
+    </section>
+
+    <!-- Dataset Statistics Section -->
+    <section class="section">
+        <h2>Dataset Statistics</h2>
+        <button id="statsBtn">Get Dataset Stats</button>
+        <div id="statsResult" class="status"></div>
+        <div id="datasetStats"></div>
+    </section>
+
+    <!-- Glaucoma Prediction Section -->
+    <section class="section">
+        <h2>Predict Glaucoma</h2>
+        <input type="file" id="predictImage" accept="image/*">
+        <button id="predictBtn">Predict</button>
+        <div id="predictResult" class="status"></div>
+        <img id="predictPreview" class="preview" style="display: none;">
+    </section>
+
+    <!-- Retrain Model Section -->
+    <section class="section">
+        <h2>Retrain Model</h2>
+        <button id="retrainBtn">Retrain Model</button>
+        <div id="retrainResult" class="status"></div>
+        <div id="metrics" class="metrics"></div>
+        <div id="chartContainer" class="chart-container"></div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>

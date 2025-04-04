@@ -1,9 +1,0 @@
-tensorflow==2.11.0
-numpy==1.23.5
-pillow==9.0.1
-pymongo==3.12.1
-python-dotenv==0.20.0
-matplotlib==3.5.1
-scikit-learn==1.1.1
-fastapi==0.75.0
-uvicorn==0.17.0  # ASGI server to run FastAPI
