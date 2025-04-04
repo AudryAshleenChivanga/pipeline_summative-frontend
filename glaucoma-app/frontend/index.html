@@ -9,33 +9,24 @@
 <body>
     <div class="container">
         <div class="split-screen">
-            <!-- Left side: Prediction Section -->
             <div class="left-panel">
-                <h1 class="title">Glaucoma E-Predictor</h1>
+                <h2 class="title">Image Prediction</h2>
                 <div class="upload-section">
                     <input type="file" id="imageInput" accept="image/*">
-                    <button onclick="uploadImage()" class="btn predict-btn">Predict</button>
+                    <button class="btn predict-btn" onclick="uploadImage()">Predict</button>
                 </div>
-                <div id="imagePreview" class="image-preview">
-                    <!-- Image will be displayed here -->
-                </div>
+                <div id="imagePreview" class="image-preview"></div>
                 <div id="predictionResult" class="result"></div>
             </div>
-
-            <!-- Right side: Retrain Model Section -->
             <div class="right-panel">
-                <h2>Retrain Model</h2>
-                <button onclick="retrainModel()" class="btn retrain-btn">Retrain Model</button>
-                <div id="retrainStatus" class="retrain-status">
-                    <!-- Display retraining status -->
-                </div>
-                <div id="retrainResult" class="result">
-                    <!-- Display retraining results -->
-                </div>
+                <h2 class="title">Model Retraining</h2>
+                <button class="btn retrain-btn" onclick="retrainModel()">Retrain</button>
+                <div id="retrainStatus" class="retrain-status"></div>
+                <div id="retrainResult" class="result"></div>
             </div>
         </div>
     </div>
-
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
