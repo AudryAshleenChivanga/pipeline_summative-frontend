@@ -5,9 +5,6 @@ This is the project front-end
 
 ````
 │──pipeline_summative-frontend/
-│   ├── index.html
-│   ├── styles.css
-│   ├── script.js
-│
-│── README.md
+│   ├── index.html ---Combined styles and js for better deployment
+│   ├── README.md 
 ````

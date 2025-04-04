@@ -3,98 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glaucoma Detection System</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <title>Glaucoma Model Training and Retraining System</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom right, #a8e6cf, #dcedc1);
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #4caf50;
+            padding: 10px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: white;
+        }
+
+        .status {
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .status.success {
+            background-color: #81c784;
+            color: white;
+        }
+
+        .status.error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status.info {
+            background-color: #64b5f6;
+            color: white;
+        }
+
+        .btn {
+            background: linear-gradient(to left, #81c784, #aed581);
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to left, #aed581, #81c784);
+        }
+
+        .btn:active {
+            background-color: #f44336;
+        }
+
+        #folderPreview img, #predictPreview img {
+            width: 100%;
+            height: auto;
+            max-width: 200px;
+            margin: 10px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+
+        tbody tr:hover {
+            background-color: #dcedc8;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+        }
+
+        canvas {
+            background: #fff;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Glaucoma Detection System</h1>
 
-    <!-- API Status Section -->
-    <section class="section">
-        <h2>API Status</h2>
-        <button id="healthCheck">Check API Status</button>
-        <div id="healthResult" class="status"></div>
-    </section>
+    <header>
+        <h1>Glaucoma Model Training and Retraining System</h1>
+    </header>
 
-    <!-- Single Image Upload Section -->
-    <section class="section">
-        <h2>Upload Single Image</h2>
-        <fieldset>
-            <input type="file" id="imageUpload" accept="image/*">
-            <div>
-                <label for="diagnosis">Diagnosis:</label>
-                <select id="diagnosis">
-                    <option value="glaucoma">Glaucoma</option>
-                    <option value="normal">Normal</option>
-                </select>
-            </div>
-            <div>
-                <label for="split">Dataset Split:</label>
-                <select id="split">
-                    <option value="train">Train</option>
-                    <option value="val">Validation</option>
-                    <option value="test">Test</option>
-                </select>
-            </div>
-        </fieldset>
-        <button id="uploadBtn">Upload Image</button>
-        <div id="uploadResult" class="status"></div>
-        <img id="uploadPreview" class="preview" style="display: none;">
-    </section>
+    <div class="container">
+        <div id="uploadSection">
+            <h2>Upload Image</h2>
+            <input type="file" id="imageUpload" />
+            <button id="uploadBtn" class="btn">Upload Image</button>
+            <div id="uploadResult" class="status"></div>
+            <img id="preview" style="display:none;"/>
+        </div>
 
-    <!-- Image Folder Upload Section -->
-    <section class="section">
-        <h2>Upload Image Folder</h2>
-        <fieldset>
-            <input type="file" id="folderUpload" webkitdirectory directory multiple>
-            <div>
-                <label for="folderDiagnosis">Diagnosis:</label>
-                <select id="folderDiagnosis">
-                    <option value="glaucoma">Glaucoma</option>
-                    <option value="normal">Normal</option>
-                </select>
-            </div>
-            <div>
-                <label for="folderSplit">Dataset Split:</label>
-                <select id="folderSplit">
-                    <option value="train">Train</option>
-                    <option value="val">Validation</option>
-                    <option value="test">Test</option>
-                </select>
-            </div>
-        </fieldset>
-        <button id="uploadFolderBtn">Upload Folder</button>
-        <div id="folderUploadResult" class="status"></div>
-        <div id="folderPreview" class="grid-preview"></div>
-    </section>
+        <div id="folderSection">
+            <h2>Upload Folder</h2>
+            <input type="file" id="folderUpload" multiple webkitdirectory />
+            <input type="text" id="folderDiagnosis" placeholder="Diagnosis" />
+            <input type="text" id="folderSplit" placeholder="Split" />
+            <button id="uploadFolderBtn" class="btn">Upload Folder</button>
+            <div id="folderUploadResult" class="status"></div>
+            <div id="folderPreview"></div>
+        </div>
 
-    <!-- Dataset Statistics Section -->
-    <section class="section">
-        <h2>Dataset Statistics</h2>
-        <button id="statsBtn">Get Dataset Stats</button>
-        <div id="statsResult" class="status"></div>
-        <div id="datasetStats"></div>
-    </section>
+        <div id="datasetStatsSection">
+            <h2>Dataset Stats</h2>
+            <button id="statsBtn" class="btn">Get Dataset Stats</button>
+            <div id="statsResult" class="status"></div>
+            <div id="datasetStats"></div>
+        </div>
 
-    <!-- Glaucoma Prediction Section -->
-    <section class="section">
-        <h2>Predict Glaucoma</h2>
-        <input type="file" id="predictImage" accept="image/*">
-        <button id="predictBtn">Predict</button>
-        <div id="predictResult" class="status"></div>
-        <img id="predictPreview" class="preview" style="display: none;">
-    </section>
+        <div id="predictionSection">
+            <h2>Image Prediction</h2>
+            <input type="file" id="predictImage" />
+            <button id="predictBtn" class="btn">Predict</button>
+            <div id="predictResult" class="status"></div>
+            <img id="predictPreview" style="display:none;"/>
+        </div>
 
-    <!-- Retrain Model Section -->
-    <section class="section">
-        <h2>Retrain Model</h2>
-        <button id="retrainBtn">Retrain Model</button>
-        <div id="retrainResult" class="status"></div>
-        <div id="metrics" class="metrics"></div>
-        <div id="chartContainer" class="chart-container"></div>
-    </section>
+        <div id="retrainSection">
+            <h2>Retrain Model</h2>
+            <button id="retrainBtn" class="btn">Retrain Model</button>
+            <div id="retrainResult" class="status"></div>
+            <div id="metrics"></div>
+            <div id="chartContainer" class="chart-container"></div>
+        </div>
+    </div>
 
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function callApi(endpoint, method = 'GET', body = null) {
+            const response = await fetch(endpoint, {
+                method: method,
+                body: body,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            return await response.json();
+        }
+
+        document.getElementById('uploadBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('imageUpload');
+            const resultElement = document.getElementById('uploadResult');
+            const previewElement = document.getElementById('preview');
+            
+            if (!fileInput.files.length) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = '<p>Please select an image first</p>';
+                return;
+            }
+
+            resultElement.className = 'status info';
+            resultElement.innerHTML = '<p>Uploading image...</p>';
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                const data = await callApi('/upload/', 'POST', formData);
+                resultElement.className = 'status success';
+                resultElement.innerHTML = `<p>Image uploaded successfully</p>`;
+                previewElement.src = URL.createObjectURL(fileInput.files[0]);
+                previewElement.style.display = 'block';
+            } catch (error) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        document.getElementById('uploadFolderBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('folderUpload');
+            const resultElement = document.getElementById('folderUploadResult');
+            const previewElement = document.getElementById('folderPreview');
+
+            if (!fileInput.files.length) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = '<p>Please select a folder first</p>';
+                return;
+            }
+
+            resultElement.className = 'status info';
+            resultElement.innerHTML = '<p>Uploading folder...</p>';
+
+            const formData = new FormData();
+            Array.from(fileInput.files).forEach(file => {
+                formData.append('images', file);
+            });
+            formData.append('diagnosis', document.getElementById('folderDiagnosis').value);
+            formData.append('split', document.getElementById('folderSplit').value);
+
+            try {
+                const data = await callApi('/upload-folder/', 'POST', formData);
+                resultElement.className = 'status success';
+                resultElement.innerHTML = `<p>Folder uploaded successfully</p>`;
+                previewElement.innerHTML = '';
+                Array.from(fileInput.files).forEach(file => {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    previewElement.appendChild(img);
+                });
+            } catch (error) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        document.getElementById('statsBtn').addEventListener('click', async () => {
+            const resultElement = document.getElementById('statsResult');
+            resultElement.className = 'status info';
+            resultElement.innerHTML = '<p>Loading dataset stats...</p>';
+
+            try {
+                const data = await callApi('/dataset-stats/');
+                resultElement.className = 'status success';
+                resultElement.innerHTML = '<p>Dataset stats loaded</p>';
+
+                const statsTable = document.createElement('table');
+                statsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Dataset Split</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.keys(data).map(split => {
+                            return `<tr><td>${split}</td><td>${data[split]}</td></tr>`;
+                        }).join('')}
+                    </tbody>
+                `;
+                document.getElementById('datasetStats').appendChild(statsTable);
+            } catch (error) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        document.getElementById('predictBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('predictImage');
+            const resultElement = document.getElementById('predictResult');
+            const previewElement = document.getElementById('predictPreview');
+            
+            if (!fileInput.files.length) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = '<p>Please select an image for prediction</p>';
+                return;
+            }
+
+            resultElement.className = 'status info';
+            resultElement.innerHTML = '<p>Making prediction...</p>';
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                const data = await callApi('/predict/', 'POST', formData);
+                resultElement.className = 'status success';
+                resultElement.innerHTML = `<p>Prediction: ${data.prediction}</p>`;
+                previewElement.src = URL.createObjectURL(fileInput.files[0]);
+                previewElement.style.display = 'block';
+            } catch (error) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        document.getElementById('retrainBtn').addEventListener('click', async () => {
+            const resultElement = document.getElementById('retrainResult');
+            resultElement.className = 'status info';
+            resultElement.innerHTML = '<p>Retraining model...</p>';
+
+            try {
+                const data = await callApi('/retrain/');
+                resultElement.className = 'status success';
+                resultElement.innerHTML = `<p>Model retrained successfully</p>`;
+                document.getElementById('metrics').innerHTML = `
+                    <p>Loss: ${data.loss}</p>
+                    <p>Accuracy: ${data.accuracy}</p>
+                `;
+                const ctx = document.getElementById('chartContainer').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.epochs,
+                        datasets: [{
+                            label: 'Loss',
+                            data: data.losses,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            fill: false
+                        }, {
+                            label: 'Accuracy',
+                            data: data.accuracies,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            fill: false
+                        }]
+                    }
+                });
+            } catch (error) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+
 </body>
 </html>
