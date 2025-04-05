@@ -3,336 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glaucoma Model Training and Retraining System</title>
+    <title>Glaucoma AI Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #81C784;
+            --accent: #AED581;
+            --background: linear-gradient(145deg, #f5f7fa 0%, #c3cfe2 100%);
+            --text: #2d3748;
+            --success: #81C784;
+            --error: #EF5350;
+            --info: #64B5F6;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom right, #a8e6cf, #dcedc1);
-            color: #333;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
         }
 
         header {
-            background-color: #4caf50;
-            padding: 10px;
-            text-align: center;
+            background: var(--primary);
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
         }
 
         header h1 {
             color: white;
+            margin: 0;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: -0.025em;
         }
 
-        .status {
-            font-weight: bold;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
         }
 
-        .status.success {
-            background-color: #81c784;
-            color: white;
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
         }
 
-        .status.error {
-            background-color: #f44336;
-            color: white;
+        .card:hover {
+            transform: translateY(-2px);
         }
 
-        .status.info {
-            background-color: #64b5f6;
-            color: white;
+        .card h2 {
+            color: var(--primary);
+            margin-top: 0;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.5rem;
         }
 
         .btn {
-            background: linear-gradient(to left, #81c784, #aed581);
-            border: none;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
             color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 5px;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn:hover {
-            background: linear-gradient(to left, #aed581, #81c784);
+            opacity: 0.9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .btn:active {
-            background-color: #f44336;
-        }
-
-        #folderPreview img, #predictPreview img {
+        input[type="file"], select {
             width: 100%;
-            height: auto;
-            max-width: 200px;
-            margin: 10px;
-        }
-
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
+            padding: 0.8rem;
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
-            overflow: hidden;
+            margin: 0.5rem 0;
+            transition: border-color 0.3s ease;
         }
 
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        .status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
         }
 
-        th {
-            background-color: #4caf50;
-            color: white;
+        .status.success { background: var(--success); color: white; }
+        .status.error { background: var(--error); color: white; }
+        .status.info { background: var(--info); color: white; }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
         }
 
-        tbody tr:nth-child(even) {
-            background-color: #f1f8e9;
-        }
-
-        tbody tr:hover {
-            background-color: #dcedc8;
+        .preview-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .chart-container {
-            margin-top: 30px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
         }
 
-        canvas {
-            background: #fff;
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
             border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        select {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
+        .metrics-table th,
+        .metrics-table td {
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .metrics-table th {
+            background: var(--primary);
+            color: white;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .upload-label {
+            display: block;
+            padding: 1.5rem;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            text-align: center;
+            color: #718096;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-
     <header>
-        <h1>Glaucoma Model Training and Retraining System</h1>
+        <h1>Glaucoma Detection AI Management</h1>
     </header>
 
     <div class="container">
-        <div id="uploadSection">
-            <h2>Upload Image</h2>
-            <input type="file" id="imageUpload" />
-            <button id="uploadBtn" class="btn">Upload Image</button>
-            <div id="uploadResult" class="status"></div>
-            <img id="preview" style="display:none;"/>
-        </div>
+        <div class="dashboard">
+            <!-- API Status Card -->
+            <div class="card">
+                <h2>API Status</h2>
+                <button class="btn" id="healthCheck">🔄 Check Status</button>
+                <div id="healthResult" class="status"></div>
+            </div>
 
-        <div id="folderSection">
-            <h2>Upload Folder</h2>
-            <input type="file" id="folderUpload" multiple webkitdirectory />
-            <select id="folderDiagnosis">
-                <option value="" disabled selected>Select Diagnosis</option>
-                <option value="glaucoma">Glaucoma</option>
-                <option value="normal">Normal</option>
-            </select>
-            <select id="folderSplit">
-                <option value="" disabled selected>Select Split</option>
-                <option value="train">Train</option>
-                <option value="validation">Validation</option>
-                <option value="test">Test</option>
-            </select>
-            <button id="uploadFolderBtn" class="btn">Upload Folder</button>
-            <div id="folderUploadResult" class="status"></div>
-            <div id="folderPreview"></div>
-        </div>
+            <!-- Single Image Upload -->
+            <div class="card">
+                <h2>Upload Single Image</h2>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="imageUpload" accept="image/*">
+                    <label class="upload-label" for="imageUpload">📁 Choose Image</label>
+                </div>
+                <select id="diagnosis">
+                    <option value="glaucoma">Glaucoma</option>
+                    <option value="normal">Normal</option>
+                </select>
+                <select id="split">
+                    <option value="train">Train</option>
+                    <option value="val">Validation</option>
+                    <option value="test">Test</option>
+                </select>
+                <button class="btn" id="uploadBtn">🚀 Upload Image</button>
+                <div id="uploadResult" class="status"></div>
+                <img id="uploadPreview" class="preview-img" style="display: none;">
+            </div>
 
-        <div id="datasetStatsSection">
-            <h2>Dataset Stats</h2>
-            <button id="statsBtn" class="btn">Get Dataset Stats</button>
-            <div id="statsResult" class="status"></div>
-            <div id="datasetStats"></div>
-        </div>
+            <!-- Batch Upload -->
+            <div class="card">
+                <h2>Batch Upload</h2>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="folderUpload" webkitdirectory directory multiple>
+                    <label class="upload-label" for="folderUpload">📂 Choose Folder</label>
+                </div>
+                <select id="folderDiagnosis">
+                    <option value="glaucoma">Glaucoma</option>
+                    <option value="normal">Normal</option>
+                </select>
+                <select id="folderSplit">
+                    <option value="train">Train</option>
+                    <option value="val">Validation</option>
+                    <option value="test">Test</option>
+                </select>
+                <button class="btn" id="uploadFolderBtn">🚀 Upload Folder</button>
+                <div id="folderUploadResult" class="status"></div>
+                <div id="folderPreview" class="preview-grid"></div>
+            </div>
 
-        <div id="predictionSection">
-            <h2>Image Prediction</h2>
-            <input type="file" id="predictImage" />
-            <button id="predictBtn" class="btn">Predict</button>
-            <div id="predictResult" class="status"></div>
-            <img id="predictPreview" style="display:none;"/>
-        </div>
+            <!-- Dataset Statistics -->
+            <div class="card">
+                <h2>Dataset Analytics</h2>
+                <button class="btn" id="statsBtn">📊 Show Stats</button>
+                <div id="statsResult" class="status"></div>
+                <div id="datasetStats"></div>
+            </div>
 
-        <div id="retrainSection">
-            <h2>Retrain Model</h2>
-            <button id="retrainBtn" class="btn">Retrain Model</button>
-            <div id="retrainResult" class="status"></div>
-            <div id="metrics"></div>
-            <div id="chartContainer" class="chart-container"></div>
+            <!-- Prediction -->
+            <div class="card">
+                <h2>AI Prediction</h2>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="predictImage" accept="image/*">
+                    <label class="upload-label" for="predictImage">🔍 Predict Image</label>
+                </div>
+                <button class="btn" id="predictBtn">🤖 Run Prediction</button>
+                <div id="predictResult" class="status"></div>
+                <img id="predictPreview" class="preview-img" style="display: none;">
+            </div>
+
+            <!-- Model Training -->
+            <div class="card">
+                <h2>Model Training</h2>
+                <button class="btn" id="retrainBtn">🎓 Retrain Model</button>
+                <div id="retrainResult" class="status"></div>
+                <div id="metrics"></div>
+                <div class="chart-container">
+                    <canvas id="trainingChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
         async function callApi(endpoint, method = 'GET', body = null) {
-            const response = await fetch(endpoint, {
-                method: method,
-                body: body,
-                headers: body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
-            });
-            return await response.json();
+            try {
+                const options = {
+                    method,
+                    headers: {}
+                };
+                
+                if (body) {
+                    if (body instanceof FormData) {
+                        options.body = body;
+                    } else {
+                        options.headers['Content-Type'] = 'application/json';
+                        options.body = JSON.stringify(body);
+                    }
+                }
+                
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || response.statusText);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
         }
 
+        // Health Check
+        document.getElementById('healthCheck').addEventListener('click', async () => {
+            const resultElement = document.getElementById('healthResult');
+            resultElement.className = 'status info';
+            resultElement.innerHTML = 'Checking API status...';
+            
+            try {
+                const data = await callApi('/');
+                resultElement.className = 'status success';
+                resultElement.innerHTML = `
+                    <p>API Status: ${data.status}</p>
+                    <p>Model Version: ${data.model_version || 'N/A'}</p>
+                `;
+            } catch (error) {
+                resultElement.className = 'status error';
+                resultElement.innerHTML = `API Connection Failed: ${error.message}`;
+            }
+        });
+
+        // Single Image Upload
         document.getElementById('uploadBtn').addEventListener('click', async () => {
             const fileInput = document.getElementById('imageUpload');
             const resultElement = document.getElementById('uploadResult');
-            const previewElement = document.getElementById('preview');
-
+            const previewElement = document.getElementById('uploadPreview');
+            
             if (!fileInput.files.length) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = '<p>Please select an image first</p>';
+                resultElement.innerHTML = 'Please select an image first';
                 return;
             }
-
-            resultElement.className = 'status info';
-            resultElement.innerHTML = '<p>Uploading image...</p>';
-
+            
             const formData = new FormData();
             formData.append('image', fileInput.files[0]);
-
+            formData.append('diagnosis', document.getElementById('diagnosis').value);
+            formData.append('split', document.getElementById('split').value);
+            
             try {
+                resultElement.className = 'status info';
+                resultElement.innerHTML = 'Uploading image...';
                 const data = await callApi('/upload/', 'POST', formData);
+                
                 resultElement.className = 'status success';
-                resultElement.innerHTML = `<p>Image uploaded successfully</p>`;
+                resultElement.innerHTML = data.message;
                 previewElement.src = URL.createObjectURL(fileInput.files[0]);
                 previewElement.style.display = 'block';
             } catch (error) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultElement.innerHTML = `Upload failed: ${error.message}`;
             }
         });
 
+        // Batch Upload
         document.getElementById('uploadFolderBtn').addEventListener('click', async () => {
             const fileInput = document.getElementById('folderUpload');
             const resultElement = document.getElementById('folderUploadResult');
-            const previewElement = document.getElementById('folderPreview');
-
+            const previewContainer = document.getElementById('folderPreview');
+            
             if (!fileInput.files.length) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = '<p>Please select a folder first</p>';
+                resultElement.innerHTML = 'Please select a folder first';
                 return;
             }
-
-            resultElement.className = 'status info';
-            resultElement.innerHTML = '<p>Uploading folder...</p>';
-
+            
             const formData = new FormData();
-            Array.from(fileInput.files).forEach(file => {
-                formData.append('images', file);
-            });
+            Array.from(fileInput.files).forEach(file => formData.append('files', file));
             formData.append('diagnosis', document.getElementById('folderDiagnosis').value);
             formData.append('split', document.getElementById('folderSplit').value);
-
+            
             try {
+                resultElement.className = 'status info';
+                resultElement.innerHTML = 'Uploading folder...';
                 const data = await callApi('/upload-folder/', 'POST', formData);
+                
                 resultElement.className = 'status success';
-                resultElement.innerHTML = `<p>Folder uploaded successfully</p>`;
-                previewElement.innerHTML = '';
-                Array.from(fileInput.files).forEach(file => {
+                resultElement.innerHTML = `Uploaded ${data.uploaded_files.length} files`;
+                previewContainer.innerHTML = '';
+                Array.from(fileInput.files).slice(0, 12).forEach(file => {
                     const img = document.createElement('img');
+                    img.className = 'preview-img';
                     img.src = URL.createObjectURL(file);
-                    previewElement.appendChild(img);
+                    previewContainer.appendChild(img);
                 });
             } catch (error) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultElement.innerHTML = `Upload failed: ${error.message}`;
             }
         });
 
+        // Dataset Stats
         document.getElementById('statsBtn').addEventListener('click', async () => {
             const resultElement = document.getElementById('statsResult');
             const statsContainer = document.getElementById('datasetStats');
-            statsContainer.innerHTML = '';
-            resultElement.className = 'status info';
-            resultElement.innerHTML = '<p>Loading dataset stats...</p>';
-
+            
             try {
+                resultElement.className = 'status info';
+                resultElement.innerHTML = 'Loading statistics...';
                 const data = await callApi('/dataset-stats/');
+                
                 resultElement.className = 'status success';
-                resultElement.innerHTML = '<p>Dataset stats loaded</p>';
-
-                const statsTable = document.createElement('table');
-                statsTable.innerHTML = `
-                    <thead>
-                        <tr><th>Dataset Split</th><th>Count</th></tr>
-                    </thead>
-                    <tbody>
-                        ${Object.keys(data).map(split => `<tr><td>${split}</td><td>${data[split]}</td></tr>`).join('')}
-                    </tbody>`;
-                statsContainer.appendChild(statsTable);
+                resultElement.innerHTML = 'Dataset statistics loaded';
+                statsContainer.innerHTML = `
+                    <table class="metrics-table">
+                        <tr><th>Category</th><th>Train</th><th>Validation</th><th>Test</th></tr>
+                        <tr><td>Glaucoma</td><td>${data.glaucoma.train}</td><td>${data.glaucoma.val}</td><td>${data.glaucoma.test}</td></tr>
+                        <tr><td>Normal</td><td>${data.normal.train}</td><td>${data.normal.val}</td><td>${data.normal.test}</td></tr>
+                    </table>
+                `;
             } catch (error) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultElement.innerHTML = `Failed to load stats: ${error.message}`;
             }
         });
 
+        // Prediction
         document.getElementById('predictBtn').addEventListener('click', async () => {
             const fileInput = document.getElementById('predictImage');
             const resultElement = document.getElementById('predictResult');
             const previewElement = document.getElementById('predictPreview');
-
+            
             if (!fileInput.files.length) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = '<p>Please select an image for prediction</p>';
+                resultElement.innerHTML = 'Please select an image first';
                 return;
             }
-
-            resultElement.className = 'status info';
-            resultElement.innerHTML = '<p>Making prediction...</p>';
-
+            
             const formData = new FormData();
             formData.append('image', fileInput.files[0]);
-
+            
             try {
+                resultElement.className = 'status info';
+                resultElement.innerHTML = 'Analyzing image...';
                 const data = await callApi('/predict/', 'POST', formData);
+                
                 resultElement.className = 'status success';
-                resultElement.innerHTML = `<p>Prediction: ${data.prediction}</p>`;
+                resultElement.innerHTML = `
+                    Diagnosis: ${data.prediction}<br>
+                    Confidence: ${(data.probability * 100).toFixed(1)}%
+                `;
                 previewElement.src = URL.createObjectURL(fileInput.files[0]);
                 previewElement.style.display = 'block';
             } catch (error) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultElement.innerHTML = `Prediction failed: ${error.message}`;
             }
         });
 
+        // Retrain Model
         document.getElementById('retrainBtn').addEventListener('click', async () => {
             const resultElement = document.getElementById('retrainResult');
-            const chartContainer = document.getElementById('chartContainer');
-            const metricsDiv = document.getElementById('metrics');
-            chartContainer.innerHTML = '';
-            metricsDiv.innerHTML = '';
-            resultElement.className = 'status info';
-            resultElement.innerHTML = '<p>Retraining model...</p>';
-
+            const metricsContainer = document.getElementById('metrics');
+            
             try {
-                const data = await callApi('/retrain/');
+                resultElement.className = 'status info';
+                resultElement.innerHTML = 'Starting model training...';
+                const data = await callApi('/retrain/', 'POST');
+                
                 resultElement.className = 'status success';
-                resultElement.innerHTML = `<p>Model retrained successfully</p>`;
-                metricsDiv.innerHTML = `<p>Loss: ${data.loss}</p><p>Accuracy: ${data.accuracy}</p>`;
+                resultElement.innerHTML = 'Model training completed';
+                metricsContainer.innerHTML = `
+                    <table class="metrics-table">
+                        <tr><th>Metric</th><th>Value</th></tr>
+                        <tr><td>Accuracy</td><td>${(data.metrics.accuracy * 100).toFixed(1)}%</td></tr>
+                        <tr><td>Precision</td><td>${(data.metrics.precision * 100).toFixed(1)}%</td></tr>
+                        <tr><td>Recall</td><td>${(data.metrics.recall * 100).toFixed(1)}%</td></tr>
+                        <tr><td>F1 Score</td><td>${(data.metrics.f1_score * 100).toFixed(1)}%</td></tr>
+                    </table>
+                `;
+                
+                // Training Chart
+                new Chart(document.getElementById('trainingChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.metrics.training_history.epochs,
+                        datasets: [{
+                            label: 'Training Loss',
+                            data: data.metrics.training_history.loss,
+                            borderColor: '#4CAF50',
+                            tension: 0.1
+                        }, {
+                            label: 'Validation Loss',
+                            data: data.metrics.training_history.val_loss,
+                            borderColor: '#2196F3',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: 'Training Progress' }
+                        }
+                    }
+                });
             } catch (error) {
                 resultElement.className = 'status error';
-                resultElement.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultElement.innerHTML = `Training failed: ${error.message}`;
             }
         });
     </script>
